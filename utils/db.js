@@ -14,6 +14,7 @@ class DBClient {
         this.db = false;
       }
     });
+    // this.userCollection = this.db.collection('users');
   }
 
   isAlive() {
@@ -30,8 +31,10 @@ class DBClient {
     return val;
   }
 
-  async getUsers(email) {
-    const val = await this.db.collection('users').findOne({ email });
+  async getUsers(key, value) {
+    const filter = {};
+    filter[key] = value;
+    const val = await this.db.collection('users').findOne(filter);
     return val;
   }
 
