@@ -14,7 +14,6 @@ class DBClient {
         this.db = false;
       }
     });
-    // this.userCollection = this.db.collection('users');
   }
 
   isAlive() {
@@ -29,20 +28,6 @@ class DBClient {
   async nbFiles() {
     const val = await this.db.collection('files').countDocuments();
     return val;
-  }
-
-  async getUsers(key, value) {
-    const filter = {};
-    filter[key] = value;
-    const val = await this.db.collection('users').findOne(filter);
-    return val;
-  }
-
-  async setUsers(email, password) {
-    const val = await this.db
-      .collection('users')
-      .insertOne({ email, password });
-    return val.ops[0];
   }
 }
 
