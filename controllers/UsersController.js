@@ -1,12 +1,12 @@
-import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
 import { ObjectId } from 'mongodb';
 import sha1 from 'sha1';
+import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
 class UsersController {
   static async postNew(req, res) {
-    const email = req.body?.email;
-    const password = req.body?.password;
+    const { email, password } = req.body;
+
     if (!email) {
       res.status(400).send({ error: 'Missing email' });
     } else if (!password) {
@@ -23,10 +23,11 @@ class UsersController {
   }
 
   static async getMe(req, res) {
-    const token = req.headers['x-token'];
-    const user_id = await redisClient.get(token);
+    const token = req.header('X-Token');
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
     const user = await dbClient.userCollection.findOne({
-      _id: ObjectId(user_id),
+      _id: ObjectId(userId),
     });
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
