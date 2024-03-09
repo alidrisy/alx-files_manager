@@ -3,13 +3,13 @@ import AppController from '../controllers/AppController';
 import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
 
-const routes = express.Router();
+const router = express.Router();
 
-routes.get('/status', AppController.getStatus);
-routes.get('/stats', AppController.getStats);
-routes.post('/users', UsersController.postNew);
-routes.get('/users/me', UsersController.getMe);
-routes.get('/connect', AuthController.getConnect);
-routes.get('/disconnect', AuthController.getDisconnect);
+router.get('/status', AppController.getStatus);
+router.get('/stats', AppController.getStats);
+router.post('/users', UsersController.postNew);
+router.get('/users/me', UsersController.getMe);
+router.get('/connect', AuthController.getConnect);
+router.get('/disconnect', AuthController.getDisconnect);
 
-export default routes;
+export default router;

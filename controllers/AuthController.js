@@ -16,7 +16,7 @@ class AuthController {
     }
     const token = v4();
     redisClient.set(token, user._id, 24 * 60 * 60);
-    return res.send({ token });
+    return res.status(200).send({ token });
   };
 
   static getDisconnect = async (req, res) => {
