@@ -16,7 +16,7 @@ class UsersController {
         email,
         password: sha1(password),
       });
-      res.send({ id: user.insertedId, email });
+      res.status(201).send({ id: user.insertedId, email });
     }
   }
 }
