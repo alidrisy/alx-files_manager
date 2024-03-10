@@ -2,6 +2,7 @@ import sha1 from 'sha1';
 import { v4 } from 'uuid';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+import { getBase64 } from '../utils/utils';
 
 export default class AuthController {
   static async getConnect(req, res) {
@@ -11,8 +12,7 @@ export default class AuthController {
       return res.status(401).send({ error: 'Unauthorized' });
     }
 
-    const buffer = Buffer.from(base64Auth, 'base64');
-    const auth = buffer.toString('utf-8');
+    const auth = getBase64(base64Auth);
     const email = auth.slice(0, auth.indexOf(':'));
     const password = auth.slice(auth.indexOf(':') + 1);
 

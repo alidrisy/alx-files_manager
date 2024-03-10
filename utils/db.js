@@ -10,6 +10,7 @@ class DBClient {
       if (!err) {
         this.db = client.db(database);
         this.userCollection = this.db.collection('users');
+        this.fileCollection = this.db.collection('files');
       } else {
         console.log(err.message);
         this.db = false;
