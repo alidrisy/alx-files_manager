@@ -112,14 +112,10 @@ class FilesController {
     }
 
     const filter = { userId };
-    let page = 0;
-
-    if (req.quary) {
-      if (req.quary.parentId) {
-        filter.parentId = req.quary.parentId;
-      }
-      page = req.quary.page;
+    if (req.query.parentId) {
+      filter.parentId = req.query.parentId;
     }
+    const page = Number.parseInt(req.query.page, 10) || 0;
     const files = await dbClient.fileCollection
       .aggregate([
         {
@@ -142,6 +138,65 @@ class FilesController {
       return { id: _id, ...rest };
     });
     return res.send(newFiles);
+  }
+
+  static async putPublish(req, res) {
+    const token = req.header('X-Token');
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    if (!userId) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+
+    const fileId = req.params.id;
+    console.log(req.params.id);
+    const file = await dbClient.fileCollection.findOne({
+      _id: ObjectId(fileId),
+      userId,
+    });
+    if (!file) {
+      return res.status(404).send({ error: 'Not found' });
+    }
+    await dbClient.fileCollection.updateOne(
+      {
+        _id: ObjectId(fileId),
+        userId,
+      },
+      {
+        $set: { isPublic: true },
+      },
+    );
+    const { _id, isPublic, ...rest } = file;
+    return res.send({ id: _id, isPublic: true, ...rest });
+  }
+
+  static async putUnpublish(req, res) {
+    const token = req.header('X-Token');
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    if (!userId) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+
+    const fileId = req.params.id;
+    const file = await dbClient.fileCollection.findOne({
+      _id: ObjectId(fileId),
+      userId,
+    });
+    if (!file) {
+      return res.status(404).send({ error: 'Not found' });
+    }
+    await dbClient.fileCollection.updateOne(
+      {
+        _id: ObjectId(fileId),
+        userId,
+      },
+      {
+        $set: { isPublic: false },
+      },
+    );
+    const { _id, isPublic, ...rest } = file;
+    return res.send({ id: _id, isPublic: false, ...rest });
   }
 }
 
