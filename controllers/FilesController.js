@@ -3,9 +3,12 @@ import path from 'path';
 import fs from 'fs';
 import { contentType } from 'mime-types';
 import { ObjectId } from 'mongodb';
+import Queue from 'bull/lib/queue';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 import { getBase64, createFolder } from '../utils/utils';
+
+const fileQueue = new Queue('fileQueue');
 
 class FilesController {
   static async postUpload(req, res) {
@@ -73,6 +76,10 @@ class FilesController {
       parentId: ObjectId(parentId) || 0,
       localPath,
     });
+    const fileId = file.insertedId.toString();
+    if (type === 'image') {
+      fileQueue.add({ userId, fileId });
+    }
     return res.status(201).send({
       id: file.insertedId,
       userId,
@@ -205,6 +212,7 @@ class FilesController {
     const key = `auth_${token}`;
     const userId = await redisClient.get(key);
     const fileId = req.params.id;
+    const { size } = req.query;
     const file = await dbClient.fileCollection.findOne({
       _id: ObjectId(fileId),
     });
@@ -217,7 +225,11 @@ class FilesController {
     if (file.type === 'folder') {
       return res.status(400).send({ error: "A folder doesn't have content" });
     }
-    if (!fs.existsSync(file.localPath)) {
+    let filePath = file.localPath;
+    if (size) {
+      filePath += `_${size}`;
+    }
+    if (!fs.existsSync(filePath)) {
       return res.status(404).send({ error: 'Not found' });
     }
 
@@ -225,7 +237,7 @@ class FilesController {
       'Content-Type',
       contentType(file.name) || 'text/plain; charset=utf-8',
     );
-    return res.sendFile(file.localPath);
+    return res.sendFile(filePath);
   }
 }
 
