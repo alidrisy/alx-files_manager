@@ -1,10 +1,11 @@
 import { v4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
+import { contentType } from 'mime-types';
 import { ObjectId } from 'mongodb';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
-import { getBase64, createFolder } from '../utils/utils';
+import { getBase64, createFolder, locallyPresent } from '../utils/utils';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -48,7 +49,7 @@ class FilesController {
         name,
         type,
         isPublic: isPublic || false,
-        parentId: parentId || 0,
+        parentId: ObjectId(parentId) || 0,
       });
       return res.status(201).send({
         id: folder.insertedId,
@@ -69,7 +70,7 @@ class FilesController {
       name,
       type,
       isPublic: isPublic || false,
-      parentId: parentId || 0,
+      parentId: ObjectId(parentId) || 0,
       localPath,
     });
     return res.status(201).send({
@@ -113,7 +114,7 @@ class FilesController {
 
     const filter = { userId: ObjectId(userId) };
     if (req.query.parentId) {
-      filter.parentId = req.query.parentId;
+      filter.parentId = ObjectId(req.query.parentId);
     }
     const page = Number.parseInt(req.query.page, 10) || 0;
     const files = await dbClient.fileCollection
@@ -197,6 +198,31 @@ class FilesController {
     );
     const { _id, isPublic, ...rest } = file;
     return res.send({ id: _id, isPublic: false, ...rest });
+  }
+
+  static async getFile(req, res) {
+    const token = req.header('X-Token');
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    const fileId = req.params.id;
+    const file = await dbClient.fileCollection.findOne({
+      _id: ObjectId(fileId),
+    });
+    if (!file) {
+      return res.status(404).send({ error: 'Not found' });
+    }
+    if (!file.isPublic && file.userId.toString() !== userId) {
+      return res.status(404).send({ error: 'Not found' });
+    }
+    if (file.type === 'folder') {
+      return res.status(400).send({ error: "A folder doesn't have content" });
+    }
+    if (!locallyPresent(file.localPath)) {
+      return res.status(404).send({ error: 'Not found' });
+    }
+
+    res.set('Content-Type', contentType(file.name));
+    return res.sendFile(file.localPath);
   }
 }
 

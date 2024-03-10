@@ -18,3 +18,12 @@ export const createFolder = async (path) => {
     }
   }
 };
+
+export const locallyPresent = async (path) => {
+  try {
+    await fs.promises.access(path, fs.constants.F_OK);
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
