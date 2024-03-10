@@ -69,7 +69,7 @@ class FilesController {
       name,
       type,
       isPublic: isPublic || false,
-      pparentId: ObjectId(parentId) || 0,
+      parentId: parentId || 0,
       localPath,
     });
     return res.status(201).send({
