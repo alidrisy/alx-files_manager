@@ -5,7 +5,7 @@ import { contentType } from 'mime-types';
 import { ObjectId } from 'mongodb';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
-import { getBase64, createFolder, locallyPresent } from '../utils/utils';
+import { getBase64, createFolder } from '../utils/utils';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -217,11 +217,14 @@ class FilesController {
     if (file.type === 'folder') {
       return res.status(400).send({ error: "A folder doesn't have content" });
     }
-    if (!locallyPresent(file.localPath)) {
+    if (!fs.existsSync(file.localPath)) {
       return res.status(404).send({ error: 'Not found' });
     }
 
-    res.set('Content-Type', contentType(file.name));
+    res.set(
+      'Content-Type',
+      contentType(file.name) || 'text/plain; charset=utf-8',
+    );
     return res.sendFile(file.localPath);
   }
 }
