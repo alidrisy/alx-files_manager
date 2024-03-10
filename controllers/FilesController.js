@@ -44,7 +44,7 @@ class FilesController {
 
     if (type === 'folder') {
       const folder = await dbClient.fileCollection.insertOne({
-        userId,
+        userId: ObjectId(userId),
         name,
         type,
         isPublic: isPublic || false,
@@ -65,7 +65,7 @@ class FilesController {
     const localPath = path.join(storingFolder, filename);
     fs.writeFileSync(localPath, getBase64(data));
     const file = await dbClient.fileCollection.insertOne({
-      userId,
+      userId: ObjectId(userId),
       name,
       type,
       isPublic: isPublic || false,
@@ -93,7 +93,7 @@ class FilesController {
     const fileId = req.params.id;
     const file = await dbClient.fileCollection.findOne({
       _id: ObjectId(fileId),
-      userId,
+      userId: ObjectId(userId),
     });
     if (!file) {
       return res.status(404).send({ error: 'Not found' });
@@ -111,7 +111,7 @@ class FilesController {
       return res.status(401).send({ error: 'Unauthorized' });
     }
 
-    const filter = { userId };
+    const filter = { userId: ObjectId(userId) };
     if (req.query.parentId) {
       filter.parentId = req.query.parentId;
     }
@@ -152,7 +152,7 @@ class FilesController {
     console.log(req.params.id);
     const file = await dbClient.fileCollection.findOne({
       _id: ObjectId(fileId),
-      userId,
+      userId: ObjectId(userId),
     });
     if (!file) {
       return res.status(404).send({ error: 'Not found' });
@@ -160,7 +160,7 @@ class FilesController {
     await dbClient.fileCollection.updateOne(
       {
         _id: ObjectId(fileId),
-        userId,
+        userId: ObjectId(userId),
       },
       {
         $set: { isPublic: true },
@@ -181,7 +181,7 @@ class FilesController {
     const fileId = req.params.id;
     const file = await dbClient.fileCollection.findOne({
       _id: ObjectId(fileId),
-      userId,
+      userId: ObjectId(userId),
     });
     if (!file) {
       return res.status(404).send({ error: 'Not found' });
@@ -189,7 +189,7 @@ class FilesController {
     await dbClient.fileCollection.updateOne(
       {
         _id: ObjectId(fileId),
-        userId,
+        userId: ObjectId(userId),
       },
       {
         $set: { isPublic: false },
