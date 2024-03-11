@@ -1,10 +1,10 @@
-const imageThumbnail = require('image-thumbnail');
-const fs = require('fs');
+import imageThumbnail from 'image-thumbnail';
+import { writeFileSync } from 'fs';
 
 (async () => {
   try {
     const thumbnail = await imageThumbnail('arrow.png', { width: 500 });
-    fs.writeFileSync('arrow_500.png', thumbnail);
+    writeFileSync('arrow_500.png', thumbnail);
     console.log(thumbnail);
   } catch (err) {
     console.error(err);

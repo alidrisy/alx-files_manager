@@ -1,7 +1,7 @@
-import Queue from 'bull';
-import { ObjectId } from 'mongodb';
-import fs from 'fs';
-import dbClient from './utils/db';
+const Queue = require('bull');
+const { ObjectId } = require('mongodb');
+const fs = require('fs');
+const dbClient = require('./utils/db');
 
 const imageThumbnail = require('image-thumbnail');
 
