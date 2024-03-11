@@ -1,11 +1,13 @@
-const Queue = require('bull');
-const { ObjectId } = require('mongodb');
-const fs = require('fs');
-const dbClient = require('./utils/db');
+import { ObjectId } from 'mongodb';
+import fs from 'fs';
+import Queue from 'bull/lib/queue';
+import dbClient from './utils/db';
 
 const imageThumbnail = require('image-thumbnail');
 
 const fileQueue = new Queue('fileQueue');
+
+const userQueue = new Queue('userQueue');
 
 fileQueue.process(async (job, done) => {
   console.log('start');
@@ -29,5 +31,19 @@ fileQueue.process(async (job, done) => {
   fs.writeFileSync(`${file.locallPath}_250`, thumbnail2);
   const thumbnail1 = await imageThumbnail(file.locallPath, { width: 100 });
   fs.writeFileSync(`${file.locallPath}_100`, thumbnail1);
+  done();
+});
+
+userQueue.process(async (job, done) => {
+  if (!job.data.userId) {
+    done(new Error('Missing userId'));
+  }
+  const user = await dbClient.userCollection.findOne({
+    _id: ObjectId(job.data.userId),
+  });
+  if (!user) {
+    done(new Error('User not found'));
+  }
+  console.log(`Welcome ${user.email}!`);
   done();
 });
